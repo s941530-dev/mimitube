@@ -12,17 +12,25 @@
             --bg-soft: #FFF9FA; --correct-green: #4CAF50; --wrong-pink: #FF8A8A;
         }
         body { font-family: 'Zen Maru Gothic', sans-serif; background-color: var(--bg-soft); color: #6A6A6A; margin: 0; padding-bottom: 80px; display: flex; flex-direction: column; align-items: center; }
+        
+        /* Header & Logo */
         .header { width: 100%; background: white; padding: 15px 0; display: flex; justify-content: space-around; align-items: center; box-shadow: 0 4px 12px rgba(255,182,193,0.2); position: sticky; top: 0; z-index: 1000; border-bottom: 3px solid var(--sakura-pink); }
         .logo { font-family: 'Quicksand', sans-serif; font-size: 26px; font-weight: 600; color: var(--sakura-dark); text-decoration: none; }
         .logo span { color: var(--macaron-green); }
         
-        .calendar-wrapper { position: relative; }
+        .calendar-wrapper { position: relative; display: inline-block; cursor: pointer; }
         .calendar-btn { background: white; border: 2px solid var(--macaron-green); padding: 8px 18px; border-radius: 25px; color: var(--mint-dark); font-weight: bold; pointer-events: none; }
         #date-picker { position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; z-index: 10; }
+
+        /* 專屬標題區塊 */
+        .title-section { margin-top: 20px; text-align: center; width: 90%; }
+        .yuli-title { font-size: 1.5em; font-weight: 700; color: var(--sakura-dark); margin-bottom: 5px; }
+        .yuli-title span { color: var(--macaron-green); }
 
         .ui-container { width: 90%; max-width: 600px; display: flex; flex-direction: column; align-items: center; gap: 15px; margin-top: 15px; }
         .player-wrapper { width: 100%; aspect-ratio: 16 / 9; border-radius: 25px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.1); border: 6px solid white; background: #000; }
         
+        /* 診斷回饋 */
         .ai-feedback { background: white; padding: 20px; border-radius: 20px; width: 100%; box-sizing: border-box; border: 3px dashed var(--sakura-pink); display: none; text-align: center; }
         .score-display { font-size: 2.2em; font-weight: bold; color: var(--sakura-dark); }
         .diagnostic-text { font-size: 1.3em; letter-spacing: 2px; line-height: 1.8; margin: 10px 0; }
@@ -30,13 +38,12 @@
         .char-correct { color: var(--correct-green); border-bottom: 2px solid var(--correct-green); }
         .char-wrong { color: var(--wrong-pink); border-bottom: 2px solid var(--wrong-pink); opacity: 0.7; }
         
+        /* 字幕與按鈕樣式 */
         .subtitle { background: white; padding: 20px; border-radius: 20px; text-align: left; cursor: pointer; border: 3px solid #f0f0f0; width: 100%; box-sizing: border-box; transition: 0.3s; }
         .subtitle.active { border-color: var(--macaron-green); background: #F4FAF8; }
-        
         .btn { border: none; border-radius: 50px; padding: 18px 0; font-weight: bold; cursor: pointer; width: 100%; font-family: inherit; font-size: 1.1em; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
         .btn-main { background: var(--macaron-green); color: white; margin-top: 10px; }
         .recording { background: var(--sakura-dark) !important; animation: pulse 1s infinite; }
-        
         audio { width: 100%; margin-top: 10px; }
         @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.02); } 100% { transform: scale(1); } }
     </style>
@@ -50,8 +57,12 @@
         </div>
     </div>
 
+    <div class="title-section">
+        <div class="yuli-title">🌸 Yuli 的<span>每日日語教室</span> 🍵</div>
+        <div id="date-display" style="font-weight: bold; color: #999; font-size: 0.8em; margin-top: 5px;"></div>
+    </div>
+
     <div class="ui-container">
-        <div id="date-display" style="font-weight: bold; color: var(--sakura-dark);">載入中...</div>
         <div class="player-wrapper"><div id="player"></div></div>
 
         <div id="ai-box" class="ai-feedback">
@@ -72,16 +83,12 @@
         let videoDB = {}, player, lStart = 0, lEnd = 0, targetJp = "";
         let mRec, chunks = [], isRecording = false, recognition;
 
-        // 核心改進：音對就對，無視漢字/假名
         function judgeBySound(target, input) {
-            // 將漢字/假名通通轉為羅馬拼音進行比對
             const targetRomaji = wanakana.toRomaji(target).replace(/[^a-z]/gi, '').toLowerCase();
             const inputRomaji = wanakana.toRomaji(input).replace(/[^a-z]/gi, '').toLowerCase();
-            
             const tChars = target.replace(/[、。！？ ]/g, "").split("");
             let html = "", correct = 0;
 
-            // 只要羅馬拼音包含這部分音節，就判定文字為綠色
             tChars.forEach(char => {
                 const charRomaji = wanakana.toRomaji(char).toLowerCase();
                 if (inputRomaji.includes(charRomaji)) {
@@ -91,9 +98,7 @@
                     html += `<span class="char-wrong">${char}</span>`;
                 }
             });
-
-            // 如果羅馬拼音完全一致，分數直接給 100
-            let score = (targetRomaji === inputRomaji) ? 100 : Math.min(Math.round((correct / tChars.length) * 120), 100);
+            let score = (targetRomaji === inputRomaji) ? 100 : Math.min(Math.round((correct / tChars.length) * 125), 100);
             return { html, score };
         }
 
@@ -105,8 +110,7 @@
                 if (c.length >= 4) {
                     const date = c[0].trim();
                     const sData = c[3].replace(/"/g, '').split('|').map(s => {
-                        const p = s.split(',');
-                        return { jp: p[0].trim(), zh: p[1].trim(), t: parseFloat(p[2]) || 0, d: parseFloat(p[3]) || 3 };
+                        return { jp: s.split(',')[0].trim(), zh: s.split(',')[1].trim(), t: parseFloat(s.split(',')[2]) || 0, d: parseFloat(s.split(',')[3]) || 3 };
                     });
                     videoDB[date] = { id: c[1].trim().replace(/["' ]/g, ""), title: c[2].trim().replace(/"/g, ''), subs: sData };
                 }
@@ -153,19 +157,18 @@
             if (!isRecording) {
                 try {
                     isRecording = true;
-                    btn.innerText = "🛑 停止錄音";
+                    btn.innerText = "🛑 錄音中，說完請點我";
                     btn.classList.add('recording');
                     document.getElementById('ai-box').style.display = 'block';
-                    document.getElementById('ai-diagnostic').innerText = "🌸 正在聽...";
+                    document.getElementById('ai-diagnostic').innerText = "🌸 正在聆聽中...";
 
-                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                    mRec = new MediaRecorder(stream); chunks = [];
+                    const s = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    mRec = new MediaRecorder(s); chunks = [];
                     mRec.ondataavailable = e => chunks.push(e.data);
                     mRec.onstop = () => {
                         const blob = new Blob(chunks, { type: mRec.mimeType });
                         document.getElementById('audio-playback').src = URL.createObjectURL(blob);
                         document.getElementById('audio-playback').style.display = 'block';
-                        stream.getTracks().forEach(track => track.stop());
                     };
                     mRec.start();
 
