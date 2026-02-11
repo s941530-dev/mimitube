@@ -13,28 +13,42 @@
         }
         body { font-family: 'Zen Maru Gothic', sans-serif; background-color: var(--bg-soft); color: #6A6A6A; margin: 0; padding-bottom: 80px; display: flex; flex-direction: column; align-items: center; }
         
+        /* Header 修正 */
         .header { width: 100%; background: white; padding: 15px 0; display: flex; justify-content: space-around; align-items: center; box-shadow: 0 4px 12px rgba(255,182,193,0.2); position: sticky; top: 0; z-index: 1000; border-bottom: 3px solid var(--sakura-pink); }
         .logo { font-family: 'Quicksand', sans-serif; font-size: 26px; font-weight: 600; color: var(--sakura-dark); text-decoration: none; }
         .logo span { color: var(--macaron-green); }
         
-        .calendar-wrapper { position: relative; }
-        .calendar-btn { background: white; border: 2px solid var(--macaron-green); padding: 8px 18px; border-radius: 25px; color: var(--mint-dark); font-weight: bold; pointer-events: none; }
-        #date-picker { position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
+        /* 日曆按鈕強化：確保手機必能點擊 */
+        .calendar-wrapper { position: relative; display: inline-block; }
+        .calendar-btn { 
+            background: white; border: 2px solid var(--macaron-green); 
+            padding: 8px 18px; border-radius: 25px; 
+            color: var(--mint-dark); font-weight: bold; 
+            display: flex; align-items: center; justify-content: center;
+        }
+        #date-picker { 
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
+            opacity: 0; cursor: pointer; z-index: 10;
+            -webkit-appearance: none; /* 針對 iOS */
+        }
 
         .ui-container { width: 90%; max-width: 600px; display: flex; flex-direction: column; align-items: center; gap: 15px; margin-top: 15px; }
         .player-wrapper { width: 100%; aspect-ratio: 16 / 9; border-radius: 25px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.1); border: 6px solid white; background: #000; }
         
+        /* 診斷回饋 */
         .ai-feedback { background: white; padding: 20px; border-radius: 20px; width: 100%; box-sizing: border-box; border: 3px dashed var(--sakura-pink); display: none; text-align: center; }
         .score-display { font-size: 2.2em; font-weight: bold; color: var(--sakura-dark); }
         .diagnostic-text { font-size: 1.3em; letter-spacing: 2px; line-height: 1.8; margin: 10px 0; }
-        .transcript-text { font-size: 0.9em; color: #888; background: #f9f9f9; padding: 10px; border-radius: 12px; margin-top: 10px; border: 1px solid #eee; }
+        .transcript-text { font-size: 0.85em; color: #888; background: #fdf2f4; padding: 12px; border-radius: 15px; margin-top: 10px; border: 1px solid var(--sakura-pink); }
         .char-correct { color: var(--correct-green); border-bottom: 2px solid var(--correct-green); }
         .char-wrong { color: var(--wrong-pink); border-bottom: 2px solid var(--wrong-pink); opacity: 0.7; }
         
+        /* 字幕列表 */
         .subtitle { background: white; padding: 20px; border-radius: 20px; text-align: left; cursor: pointer; border: 3px solid #f0f0f0; width: 100%; box-sizing: border-box; transition: 0.3s; }
         .subtitle.active { border-color: var(--macaron-green); background: #F4FAF8; }
         
-        .btn { border: none; border-radius: 50px; padding: 18px 0; font-weight: bold; cursor: pointer; width: 100%; font-family: inherit; font-size: 1.1em; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        /* 按鈕風格 */
+        .btn { border: none; border-radius: 50px; padding: 18px 0; font-weight: bold; cursor: pointer; width: 100%; font-family: inherit; font-size: 1.1em; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.05); transition: 0.2s; }
         .btn-main { background: var(--macaron-green); color: white; margin-top: 10px; }
         .recording { background: var(--sakura-dark) !important; animation: pulse 1s infinite; }
         
@@ -58,8 +72,8 @@
         <div id="ai-box" class="ai-feedback">
             <div class="score-display" id="ai-score">-- 分</div>
             <div id="ai-diagnostic" class="diagnostic-text"></div>
-            <div id="ai-status" style="font-size: 0.9em; color: var(--mint-dark); font-weight: bold;"></div>
-            <div id="ai-transcript-box" class="transcript-text">AI 聽到你說：<span id="ai-transcript" style="color: var(--sakura-dark); font-weight: bold;">...</span></div>
+            <div id="ai-status" style="font-size: 0.9em; color: var(--mint-dark); font-weight: bold; margin-bottom: 8px;"></div>
+            <div id="ai-transcript-box" class="transcript-text">AI 聽到你說：<br><span id="ai-transcript" style="color: var(--sakura-dark); font-weight: bold;">...</span></div>
         </div>
 
         <button id="main-btn" class="btn btn-main" onclick="handleMicClick()">🎤 點我錄音診斷</button>
@@ -127,15 +141,10 @@
             const btn = document.getElementById('main-btn');
             const box = document.getElementById('ai-box');
             
-            if (typeof AudioContext !== 'undefined') {
-                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                if (audioCtx.state === 'suspended') audioCtx.resume();
-            }
-
             if (!isRecording) {
                 try {
                     isRecording = true;
-                    btn.innerText = "🛑 錄音中，說完請再點我";
+                    btn.innerText = "🛑 錄音中，說完請點我";
                     btn.classList.add('recording');
                     box.style.display = 'block';
                     document.getElementById('ai-score').innerText = "-- 分";
@@ -160,7 +169,7 @@
                     recognition.lang = 'ja-JP';
                     recognition.onresult = (e) => {
                         const res = e.results[0][0].transcript;
-                        document.getElementById('ai-transcript').innerText = res; // 顯示 AI 聽到的原話
+                        document.getElementById('ai-transcript').innerText = res;
                         
                         const tChars = targetJp.replace(/[、。！？ ]/g, "").split("");
                         let html = "", correct = 0;
@@ -168,17 +177,17 @@
                             if (res.includes(c)) { html += `<span class="char-correct">${c}</span>`; correct++; }
                             else { html += `<span class="char-wrong">${c}</span>`; }
                         });
-                        let finalScore = Math.min(Math.round((correct / tChars.length) * 120), 100);
+                        let finalScore = Math.min(Math.round((correct / tChars.length) * 125), 100);
                         document.getElementById('ai-score').innerText = finalScore + " 分";
                         document.getElementById('ai-diagnostic').innerHTML = html;
-                        document.getElementById('ai-status').innerText = finalScore >= 80 ? "🎯 太棒了！發音很準！" : "🌸 很不錯喔，加油！";
+                        document.getElementById('ai-status').innerText = finalScore >= 80 ? "🎯 素晴らしい！發音很準！" : "🌸 加油，再練習一次！";
                     };
                     recognition.start();
                 } catch (err) {
                     isRecording = false;
                     btn.innerText = "🎤 點我錄音診斷";
                     btn.classList.remove('recording');
-                    alert("請開啟麥克風權限喔！");
+                    alert("麥克風啟動失敗，請檢查權限。");
                 }
             } else {
                 isRecording = false;
