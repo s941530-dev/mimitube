@@ -7,81 +7,51 @@
     <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@600&family=Zen+Maru+Gothic:wght@400;700&display=swap" rel="stylesheet">
     <style>
         :root { 
-            --macaron-pink: #FFD1DC; /* 馬卡龍粉 */
-            --sakura-dark: #FF9AA2;  /* 櫻花深粉 */
-            --macaron-green: #B2E2D2; /* 馬卡龍綠 */
-            --mint-dark: #88C9B3;    /* 深薄荷綠 */
-            --bg-soft: #FFF9FA;      /* 極淺粉底色 */
-            --text-gray: #6A6A6A;
+            --macaron-pink: #FFD1DC; --sakura-dark: #FF9AA2; 
+            --macaron-green: #B2E2D2; --mint-dark: #88C9B3; 
+            --bg-soft: #FFF9FA; --text-gray: #6A6A6A;
         }
-        body { font-family: 'Zen Maru Gothic', sans-serif; background-color: var(--bg-soft); color: var(--text-gray); margin: 0; padding-bottom: 80px; display: flex; flex-direction: column; align-items: center; }
-        
-        /* 導覽列 */
+        body { font-family: 'Zen Maru Gothic', sans-serif; background-color: var(--bg-soft); color: var(--text-gray); margin: 0; padding-bottom: 80px; display: flex; flex-direction: column; align-items: center; -webkit-tap-highlight-color: transparent; }
         .header { width: 100%; background: white; padding: 15px 0; display: flex; justify-content: space-around; align-items: center; box-shadow: 0 4px 12px rgba(255,182,193,0.2); position: sticky; top: 0; z-index: 1000; border-bottom: 3px solid var(--macaron-pink); }
         .logo { font-family: 'Quicksand', sans-serif; font-size: 26px; font-weight: 600; color: var(--sakura-dark); text-decoration: none; }
-        .logo span { color: var(--macaron-green); }
-        
-        .calendar-btn { background: white; border: 2px solid var(--macaron-green); padding: 8px 18px; border-radius: 25px; cursor: pointer; color: var(--mint-dark); font-weight: bold; transition: 0.3s; }
-        .calendar-btn:hover { background: var(--macaron-green); color: white; }
-
+        .calendar-btn { background: white; border: 2px solid var(--macaron-green); padding: 8px 18px; border-radius: 25px; cursor: pointer; color: var(--mint-dark); font-weight: bold; }
         .main-content { padding: 20px; width: 95%; max-width: 640px; text-align: center; }
         .player-wrapper { width: 100%; aspect-ratio: 16 / 9; border-radius: 30px; overflow: hidden; box-shadow: 0 12px 30px rgba(0,0,0,0.1); border: 8px solid white; background: #000; margin-bottom: 25px; }
-        
-        /* AI 顯示區 */
         .ai-feedback { background: white; padding: 20px; border-radius: 25px; margin: 15px 0; border: 3px dashed var(--macaron-pink); display: none; }
-        
-        /* 字幕塊：綠色外框與粉紅背景 */
-        .subtitle { background: white; margin-bottom: 12px; padding: 20px; border-radius: 20px; text-align: left; cursor: pointer; border: 3px solid #f0f0f0; transition: 0.3s; box-shadow: 0 4px 6px rgba(0,0,0,0.02); }
-        .subtitle.active { border-color: var(--macaron-green); background: #F4FAF8; transform: translateY(-2px); }
-        .jp-text { font-size: 1.25em; font-weight: 700; color: #4A4A4A; }
-        .zh-text { font-size: 0.95em; color: #9B9B9B; margin-top: 6px; }
-        
-        /* 按鈕群 */
-        .btn-group { display: flex; flex-direction: column; gap: 12px; align-items: center; width: 100%; margin-top: 15px; }
-        .btn { border: none; border-radius: 50px; padding: 16px 30px; font-weight: bold; cursor: pointer; transition: 0.3s; width: 100%; max-width: 400px; font-family: inherit; font-size: 1em; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
-        
+        .subtitle { background: white; margin-bottom: 12px; padding: 20px; border-radius: 20px; text-align: left; cursor: pointer; border: 3px solid #f0f0f0; transition: 0.3s; }
+        .subtitle.active { border-color: var(--macaron-green); background: #F4FAF8; }
+        .btn-group { display: flex; flex-direction: column; gap: 12px; align-items: center; width: 100%; }
+        .btn { border: none; border-radius: 50px; padding: 16px 30px; font-weight: bold; cursor: pointer; transition: 0.3s; width: 100%; max-width: 400px; font-family: inherit; }
         .btn-ai { background: var(--sakura-dark); color: white; }
-        .btn-ai:hover { background: #FF8590; transform: scale(1.02); }
-        
         .btn-record { background: var(--macaron-green); color: white; }
-        .btn-record:hover { background: var(--mint-dark); transform: scale(1.02); }
         .btn-record.recording { background: #FF6B6B; animation: pulse 1s infinite; }
-        
-        .btn-done { background: white; border: 3px solid var(--macaron-pink); color: var(--sakura-dark); margin-top: 25px; }
-        .btn-done.completed { background-color: var(--macaron-pink); border-color: var(--macaron-pink); color: white; pointer-events: none; }
-        
         audio { width: 100%; max-width: 400px; margin: 15px 0; display: none; }
         #date-picker { position: absolute; opacity: 0; pointer-events: none; }
-
         @keyframes pulse { 0% {transform:scale(1)} 50% {transform:scale(1.03)} 100% {transform:scale(1)} }
     </style>
 </head>
 <body>
     <div class="header">
         <a href="#" class="logo">Mimi<span>Tube</span></a>
-        <button class="calendar-btn" onclick="document.getElementById('date-picker').showPicker()">📅 選日期</button>
+        <button class="calendar-btn" onclick="openPicker()">📅 選日期</button>
         <input type="date" id="date-picker" onchange="switchLesson(this.value)">
     </div>
 
     <div class="main-content">
-        <div id="date-display" style="font-weight: bold; color: var(--mint-dark); margin-bottom: 8px; font-size: 0.9em;"></div>
-        <h2 id="lesson-title" style="margin-top:0;">載入課程中...</h2>
+        <div id="date-display" style="font-weight: bold; color: var(--mint-dark); margin-bottom: 8px;"></div>
+        <h2 id="lesson-title">載入中...</h2>
         <div class="player-wrapper"><div id="player"></div></div>
-
         <div id="ai-box" class="ai-feedback">
             <div id="ai-status" style="font-weight: bold; color: var(--sakura-dark);"></div>
             <div style="font-size: 0.9em; margin: 10px 0;">聽到的：<span id="ai-transcript" style="color:var(--mint-dark); font-weight:bold;">...</span></div>
-            <div id="ai-result" style="font-size: 1.1em; font-weight: bold;"></div>
+            <div id="ai-result"></div>
         </div>
-
         <div class="btn-group">
             <button id="ai-btn" class="btn btn-ai" onclick="startSpeechAI()">🌸 啟動 AI 校正發音</button>
             <button id="manual-record-btn" class="btn btn-record" onclick="toggleManualRecord()">🍵 手動錄音比對</button>
-            <audio id="audio-playback" controls></audio>
+            <audio id="audio-playback" controls playsinline></audio>
         </div>
-
         <div id="subtitle-list" style="margin-top: 25px;"></div>
-        <button id="complete-btn" class="btn btn-done" onclick="saveMyProgress()">完成今日練習</button>
     </div>
 
     <script>
@@ -89,26 +59,27 @@
         let videoDB = {}, player, lStart = 0, lEnd = 0, targetJp = "";
         const todayKey = new Date().toLocaleDateString('sv-SE');
 
+        // Safari 日期選擇器修復
+        function openPicker() { document.getElementById('date-picker').showPicker ? document.getElementById('date-picker').showPicker() : document.getElementById('date-picker').click(); }
+
         async function fetchCSV() {
-            try {
-                const r = await fetch(`${SHEET_URL}&v=${Date.now()}`);
-                const txt = await r.text();
-                txt.split('\n').slice(1).forEach(line => {
-                    const c = line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
-                    if (c.length >= 4) {
-                        const date = c[0].trim();
-                        const sData = c[3].replace(/"/g, '').split('|').map(s => {
-                            const p = s.split(',');
-                            return { jp: p[0], zh: p[1], t: parseFloat(p[2]) || 0, d: parseFloat(p[3]) || 3 };
-                        });
-                        videoDB[date] = { id: c[1].replace(/["' ]/g, ""), title: c[2].replace(/"/g, ''), subs: sData };
-                    }
-                });
-                loadYoutubeSDK();
-            } catch(e) { console.error("CSV error"); }
+            const r = await fetch(`${SHEET_URL}&v=${Date.now()}`);
+            const txt = await r.text();
+            txt.split('\n').slice(1).forEach(line => {
+                const c = line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
+                if (c.length >= 4) {
+                    const date = c[0].trim();
+                    const sData = c[3].replace(/"/g, '').split('|').map(s => {
+                        const p = s.split(',');
+                        return { jp: p[0], zh: p[1], t: parseFloat(p[2]) || 0, d: parseFloat(p[3]) || 3 };
+                    });
+                    videoDB[date] = { id: c[1].replace(/["' ]/g, ""), title: c[2].replace(/"/g, ''), subs: sData };
+                }
+            });
+            initYT();
         }
 
-        function loadYoutubeSDK() {
+        function initYT() {
             const t = document.createElement('script'); t.src = "https://www.youtube.com/iframe_api";
             document.head.appendChild(t);
         }
@@ -119,13 +90,9 @@
                 height: '100%', width: '100%',
                 videoId: lesson ? lesson.id : '',
                 playerVars: { 'playsinline': 1, 'rel': 0 },
-                events: { 'onReady': () => { switchLesson(todayKey); checkLocalRecord(); } }
+                events: { 'onReady': () => { switchLesson(todayKey); } }
             });
-            setInterval(() => {
-                if (player && player.getPlayerState() === 1 && lEnd > 0) {
-                    if (player.getCurrentTime() >= lEnd) player.seekTo(lStart);
-                }
-            }, 30);
+            setInterval(() => { if (player && player.getPlayerState() === 1 && lEnd > 0) { if (player.getCurrentTime() >= lEnd) player.seekTo(lStart); } }, 30);
         }
 
         function switchLesson(date) {
@@ -138,8 +105,7 @@
             list.innerHTML = "";
             lesson.subs.forEach((s, i) => {
                 const d = document.createElement('div');
-                d.className = 'subtitle'; d.id = `sub-${i}`;
-                d.onclick = () => {
+                d.className = 'subtitle'; d.onclick = () => {
                     lStart = s.t; lEnd = s.t + s.d; targetJp = s.jp;
                     player.seekTo(lStart); player.playVideo();
                     document.querySelectorAll('.subtitle').forEach(el => el.classList.remove('active'));
@@ -151,14 +117,12 @@
             if (lesson.subs[0]) { lStart = lesson.subs[0].t; lEnd = lStart + lesson.subs[0].d; targetJp = lesson.subs[0].jp; }
         }
 
+        // AI 辨識 (Safari 支援 webkitSpeechRecognition)
         function startSpeechAI() {
             const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
-            if (!SpeechRec) return alert("請使用 Chrome 瀏覽器。");
+            if (!SpeechRec) return alert("您的設備不支援 AI 辨識，請使用 Chrome 或更新 Safari。");
             const rec = new SpeechRec(); rec.lang = 'ja-JP';
-            rec.onstart = () => {
-                document.getElementById('ai-box').style.display = 'block';
-                document.getElementById('ai-status').innerText = "🌸 AI 正在聽...";
-            };
+            rec.onstart = () => { document.getElementById('ai-box').style.display = 'block'; document.getElementById('ai-status').innerText = "🌸 AI 正在聽..."; };
             rec.onresult = (e) => {
                 const res = e.results[0][0].transcript;
                 document.getElementById('ai-transcript').innerText = res;
@@ -169,32 +133,28 @@
             rec.start();
         }
 
+        // 手動錄音 (相容 Safari 的 MediaRecorder)
         let mRec, chunks = [];
         async function toggleManualRecord() {
             const btn = document.getElementById('manual-record-btn');
             const p = document.getElementById('audio-playback');
             if (!mRec || mRec.state === "inactive") {
-                const s = await navigator.mediaDevices.getUserMedia({ audio: true });
-                mRec = new MediaRecorder(s); chunks = [];
-                mRec.ondataavailable = e => chunks.push(e.data);
-                mRec.onstop = () => { p.src = URL.createObjectURL(new Blob(chunks)); p.style.display = 'block'; };
-                mRec.start(); btn.innerText = "🛑 停止錄製"; btn.classList.add('recording');
+                try {
+                    const s = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    // Safari 相容格式判斷
+                    const options = MediaRecorder.isTypeSupported('audio/webm') ? { mimeType: 'audio/webm' } : { mimeType: 'audio/mp4' };
+                    mRec = new MediaRecorder(s, options);
+                    chunks = [];
+                    mRec.ondataavailable = e => chunks.push(e.data);
+                    mRec.onstop = () => {
+                        const blob = new Blob(chunks, { type: mRec.mimeType });
+                        p.src = URL.createObjectURL(blob);
+                        p.style.display = 'block';
+                        p.play(); // Safari 需要手動觸發播放
+                    };
+                    mRec.start(); btn.innerText = "🛑 停止錄製"; btn.classList.add('recording');
+                } catch(e) { alert("無法開啟麥克風，請檢查權限。"); }
             } else { mRec.stop(); btn.innerText = "🍵 手動錄音比對"; btn.classList.remove('recording'); }
-        }
-
-        function saveMyProgress() {
-            localStorage.setItem('yuli_v2_done_'+todayKey, '1');
-            const b = document.getElementById('complete-btn');
-            b.className = 'btn btn-done completed';
-            b.innerText = '🌸 今日練習達成';
-        }
-
-        function checkLocalRecord() {
-            if (localStorage.getItem('yuli_v2_done_'+todayKey)) {
-                const b = document.getElementById('complete-btn');
-                b.className = 'btn btn-done completed';
-                b.innerText = '🌸 今日練習達成';
-            }
         }
         fetchCSV();
     </script>
