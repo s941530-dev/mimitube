@@ -7,67 +7,80 @@
     <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@600&family=Zen+Maru+Gothic:wght@400;700&display=swap" rel="stylesheet">
     <style>
         :root { 
-            --primary-pink: #FFC0CB; 
-            --dark-pink: #FF80AB; 
-            --bg-color: #FFF5F7; 
-            --accent-mint: #A3D2CA; 
-            --text-color: #5D5D5D; 
-            --record-red: #FFB7B7;
+            --macaron-pink: #FFD1DC; /* 馬卡龍粉 */
+            --sakura-dark: #FF9AA2;  /* 櫻花深粉 */
+            --macaron-green: #B2E2D2; /* 馬卡龍綠 */
+            --mint-dark: #88C9B3;    /* 深薄荷綠 */
+            --bg-soft: #FFF9FA;      /* 極淺粉底色 */
+            --text-gray: #6A6A6A;
         }
-        body { font-family: 'Zen Maru Gothic', sans-serif; background-color: var(--bg-color); color: var(--text-color); margin: 0; padding-bottom: 80px; display: flex; flex-direction: column; align-items: center; }
+        body { font-family: 'Zen Maru Gothic', sans-serif; background-color: var(--bg-soft); color: var(--text-gray); margin: 0; padding-bottom: 80px; display: flex; flex-direction: column; align-items: center; }
         
-        /* 導覽列與日曆按鈕 */
-        .header { width: 100%; background: white; padding: 15px 0; display: flex; justify-content: space-around; align-items: center; box-shadow: 0 2px 10px rgba(255,192,203,0.3); position: sticky; top: 0; z-index: 1000; }
-        .logo { font-family: 'Quicksand', sans-serif; font-size: 26px; font-weight: 600; color: var(--dark-pink); text-decoration: none; }
-        .calendar-btn { background: white; border: 2px solid var(--primary-pink); padding: 8px 15px; border-radius: 20px; cursor: pointer; color: var(--dark-pink); font-weight: bold; transition: 0.3s; }
-        .calendar-btn:hover { background: var(--primary-pink); color: white; }
-        #date-picker { position: absolute; opacity: 0; pointer-events: none; }
+        /* 導覽列 */
+        .header { width: 100%; background: white; padding: 15px 0; display: flex; justify-content: space-around; align-items: center; box-shadow: 0 4px 12px rgba(255,182,193,0.2); position: sticky; top: 0; z-index: 1000; border-bottom: 3px solid var(--macaron-pink); }
+        .logo { font-family: 'Quicksand', sans-serif; font-size: 26px; font-weight: 600; color: var(--sakura-dark); text-decoration: none; }
+        .logo span { color: var(--macaron-green); }
+        
+        .calendar-btn { background: white; border: 2px solid var(--macaron-green); padding: 8px 18px; border-radius: 25px; cursor: pointer; color: var(--mint-dark); font-weight: bold; transition: 0.3s; }
+        .calendar-btn:hover { background: var(--macaron-green); color: white; }
 
         .main-content { padding: 20px; width: 95%; max-width: 640px; text-align: center; }
-        .player-wrapper { width: 100%; aspect-ratio: 16 / 9; border-radius: 25px; overflow: hidden; box-shadow: 0 10px 25px rgba(255,128,171,0.2); border: 6px solid white; background: #000; margin-bottom: 20px; }
+        .player-wrapper { width: 100%; aspect-ratio: 16 / 9; border-radius: 30px; overflow: hidden; box-shadow: 0 12px 30px rgba(0,0,0,0.1); border: 8px solid white; background: #000; margin-bottom: 25px; }
         
-        .ai-feedback { background: white; padding: 15px; border-radius: 20px; margin: 15px 0; border: 2px dashed var(--primary-pink); display: none; }
-        .subtitle { background: #fff; margin-bottom: 12px; padding: 18px; border-radius: 20px; text-align: left; cursor: pointer; border: 3px solid transparent; transition: 0.2s; box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
-        .subtitle.active { border-color: var(--primary-pink); background: #FFF0F3; }
-        .jp-text { font-size: 1.2em; font-weight: 700; color: #444; }
+        /* AI 顯示區 */
+        .ai-feedback { background: white; padding: 20px; border-radius: 25px; margin: 15px 0; border: 3px dashed var(--macaron-pink); display: none; }
         
-        .btn-group { display: flex; flex-direction: column; gap: 10px; align-items: center; width: 100%; }
-        .btn { border: none; border-radius: 50px; padding: 15px 35px; font-weight: bold; cursor: pointer; transition: 0.3s; width: 100%; max-width: 400px; font-family: inherit; }
-        .btn-ai { background: var(--dark-pink); color: white; font-size: 1.1em; }
-        .btn-record { background: var(--record-red); color: white; font-size: 1em; }
-        .btn-done { background: white; border: 3px solid var(--primary-pink); color: var(--dark-pink); margin-top: 20px; }
-        .btn-done.completed { background-color: var(--primary-pink); border-color: var(--primary-pink); color: white; pointer-events: none; }
+        /* 字幕塊：綠色外框與粉紅背景 */
+        .subtitle { background: white; margin-bottom: 12px; padding: 20px; border-radius: 20px; text-align: left; cursor: pointer; border: 3px solid #f0f0f0; transition: 0.3s; box-shadow: 0 4px 6px rgba(0,0,0,0.02); }
+        .subtitle.active { border-color: var(--macaron-green); background: #F4FAF8; transform: translateY(-2px); }
+        .jp-text { font-size: 1.25em; font-weight: 700; color: #4A4A4A; }
+        .zh-text { font-size: 0.95em; color: #9B9B9B; margin-top: 6px; }
         
-        audio { width: 100%; max-width: 400px; margin: 10px 0; display: none; }
-        .recording-status { animation: pulse 1s infinite; color: #FF4081; font-weight: bold; }
-        @keyframes pulse { 0% {opacity:1} 50% {opacity:0.5} 100% {opacity:1} }
+        /* 按鈕群 */
+        .btn-group { display: flex; flex-direction: column; gap: 12px; align-items: center; width: 100%; margin-top: 15px; }
+        .btn { border: none; border-radius: 50px; padding: 16px 30px; font-weight: bold; cursor: pointer; transition: 0.3s; width: 100%; max-width: 400px; font-family: inherit; font-size: 1em; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        
+        .btn-ai { background: var(--sakura-dark); color: white; }
+        .btn-ai:hover { background: #FF8590; transform: scale(1.02); }
+        
+        .btn-record { background: var(--macaron-green); color: white; }
+        .btn-record:hover { background: var(--mint-dark); transform: scale(1.02); }
+        .btn-record.recording { background: #FF6B6B; animation: pulse 1s infinite; }
+        
+        .btn-done { background: white; border: 3px solid var(--macaron-pink); color: var(--sakura-dark); margin-top: 25px; }
+        .btn-done.completed { background-color: var(--macaron-pink); border-color: var(--macaron-pink); color: white; pointer-events: none; }
+        
+        audio { width: 100%; max-width: 400px; margin: 15px 0; display: none; }
+        #date-picker { position: absolute; opacity: 0; pointer-events: none; }
+
+        @keyframes pulse { 0% {transform:scale(1)} 50% {transform:scale(1.03)} 100% {transform:scale(1)} }
     </style>
 </head>
 <body>
     <div class="header">
         <a href="#" class="logo">Mimi<span>Tube</span></a>
-        <button class="calendar-btn" onclick="document.getElementById('date-picker').showPicker()">📅 換練習日期</button>
+        <button class="calendar-btn" onclick="document.getElementById('date-picker').showPicker()">📅 選日期</button>
         <input type="date" id="date-picker" onchange="switchLesson(this.value)">
     </div>
 
     <div class="main-content">
-        <div id="date-display" style="font-weight: bold; color: var(--dark-pink); margin-bottom: 5px;"></div>
-        <h2 id="lesson-title">讀取中...</h2>
+        <div id="date-display" style="font-weight: bold; color: var(--mint-dark); margin-bottom: 8px; font-size: 0.9em;"></div>
+        <h2 id="lesson-title" style="margin-top:0;">載入課程中...</h2>
         <div class="player-wrapper"><div id="player"></div></div>
 
         <div id="ai-box" class="ai-feedback">
-            <div id="ai-status"></div>
-            <div style="font-size: 0.9em; margin-top:5px;">AI 聽到的：<span id="ai-transcript" style="color:var(--dark-pink); font-weight:bold;">...</span></div>
-            <div id="ai-result" style="margin-top:10px; font-weight:bold;"></div>
+            <div id="ai-status" style="font-weight: bold; color: var(--sakura-dark);"></div>
+            <div style="font-size: 0.9em; margin: 10px 0;">聽到的：<span id="ai-transcript" style="color:var(--mint-dark); font-weight:bold;">...</span></div>
+            <div id="ai-result" style="font-size: 1.1em; font-weight: bold;"></div>
         </div>
 
         <div class="btn-group">
-            <button id="ai-btn" class="btn btn-ai" onclick="startSpeechAI()">🎤 啟動 AI 校正發音</button>
-            <button id="manual-record-btn" class="btn btn-record" onclick="toggleManualRecord()">🎙️ 手動錄製比對</button>
+            <button id="ai-btn" class="btn btn-ai" onclick="startSpeechAI()">🌸 啟動 AI 校正發音</button>
+            <button id="manual-record-btn" class="btn btn-record" onclick="toggleManualRecord()">🍵 手動錄音比對</button>
             <audio id="audio-playback" controls></audio>
         </div>
 
-        <div id="subtitle-list" style="margin-top: 20px;"></div>
+        <div id="subtitle-list" style="margin-top: 25px;"></div>
         <button id="complete-btn" class="btn btn-done" onclick="saveMyProgress()">完成今日練習</button>
     </div>
 
@@ -86,13 +99,13 @@
                         const date = c[0].trim();
                         const sData = c[3].replace(/"/g, '').split('|').map(s => {
                             const p = s.split(',');
-                            return { jp: p[0], zh: p[1], t: parseFloat(p[2]) || 0 };
+                            return { jp: p[0], zh: p[1], t: parseFloat(p[2]) || 0, d: parseFloat(p[3]) || 3 };
                         });
                         videoDB[date] = { id: c[1].replace(/["' ]/g, ""), title: c[2].replace(/"/g, ''), subs: sData };
                     }
                 });
                 loadYoutubeSDK();
-            } catch(e) { console.error(e); }
+            } catch(e) { console.error("CSV error"); }
         }
 
         function loadYoutubeSDK() {
@@ -110,34 +123,32 @@
             });
             setInterval(() => {
                 if (player && player.getPlayerState() === 1 && lEnd > 0) {
-                    if (player.getCurrentTime() >= lEnd || player.getCurrentTime() < lStart - 0.2) player.seekTo(lStart);
+                    if (player.getCurrentTime() >= lEnd) player.seekTo(lStart);
                 }
-            }, 50);
+            }, 30);
         }
 
         function switchLesson(date) {
             const lesson = videoDB[date] || Object.values(videoDB)[0];
             if (!lesson) return;
-            
             document.getElementById('lesson-title').innerText = lesson.title;
-            document.getElementById('date-display').innerText = `📅 課程日期：${date}`;
+            document.getElementById('date-display').innerText = `📅 Date: ${date}`;
             player.loadVideoById(lesson.id);
-
             const list = document.getElementById('subtitle-list');
             list.innerHTML = "";
             lesson.subs.forEach((s, i) => {
                 const d = document.createElement('div');
                 d.className = 'subtitle'; d.id = `sub-${i}`;
                 d.onclick = () => {
-                    lStart = s.t; lEnd = s.t + 2.2; targetJp = s.jp;
+                    lStart = s.t; lEnd = s.t + s.d; targetJp = s.jp;
                     player.seekTo(lStart); player.playVideo();
                     document.querySelectorAll('.subtitle').forEach(el => el.classList.remove('active'));
                     d.classList.add('active');
                 };
-                d.innerHTML = `<div class="jp-text" style="font-weight:700;">${s.jp}</div><div class="zh-text">${s.zh}</div>`;
+                d.innerHTML = `<div class="jp-text">${s.jp}</div><div class="zh-text">${s.zh}</div>`;
                 list.appendChild(d);
             });
-            if (lesson.subs[0]) { lStart = lesson.subs[0].t; lEnd = lesson.subs[0].t + 2.2; targetJp = lesson.subs[0].jp; }
+            if (lesson.subs[0]) { lStart = lesson.subs[0].t; lEnd = lStart + lesson.subs[0].d; targetJp = lesson.subs[0].jp; }
         }
 
         function startSpeechAI() {
@@ -146,13 +157,13 @@
             const rec = new SpeechRec(); rec.lang = 'ja-JP';
             rec.onstart = () => {
                 document.getElementById('ai-box').style.display = 'block';
-                document.getElementById('ai-status').innerHTML = '<span class="recording-status">🌸 AI 正在聽...</span>';
+                document.getElementById('ai-status').innerText = "🌸 AI 正在聽...";
             };
             rec.onresult = (e) => {
                 const res = e.results[0][0].transcript;
                 document.getElementById('ai-transcript').innerText = res;
                 const ok = res.replace(/[、。！？ ]/g, "") === targetJp.replace(/[、。！？ ]/g, "");
-                document.getElementById('ai-result').innerHTML = ok ? '<span style="color:#F06292;">🌸 正確！</span>' : '<span style="color:#F48FB1;">💪 AI 聽到的是「'+res+'」</span>';
+                document.getElementById('ai-result').innerHTML = ok ? '<span style="color:var(--sakura-dark);">🎯 完璧！發音正確！</span>' : '<span style="color:var(--mint-dark);">💪 聽起來像「'+res+'」</span>';
             };
             rec.onend = () => { document.getElementById('ai-status').innerText = "辨識結束"; };
             rec.start();
@@ -167,19 +178,22 @@
                 mRec = new MediaRecorder(s); chunks = [];
                 mRec.ondataavailable = e => chunks.push(e.data);
                 mRec.onstop = () => { p.src = URL.createObjectURL(new Blob(chunks)); p.style.display = 'block'; };
-                mRec.start(); btn.innerText = "🛑 停止錄音"; btn.classList.add('recording-status');
-            } else { mRec.stop(); btn.innerText = "🎙️ 手動錄製比對"; btn.classList.remove('recording-status'); }
+                mRec.start(); btn.innerText = "🛑 停止錄製"; btn.classList.add('recording');
+            } else { mRec.stop(); btn.innerText = "🍵 手動錄音比對"; btn.classList.remove('recording'); }
         }
 
         function saveMyProgress() {
-            localStorage.setItem('yuli_dual_v2_'+todayKey, 'done');
-            checkLocalRecord();
+            localStorage.setItem('yuli_v2_done_'+todayKey, '1');
+            const b = document.getElementById('complete-btn');
+            b.className = 'btn btn-done completed';
+            b.innerText = '🌸 今日練習達成';
         }
 
         function checkLocalRecord() {
-            if (localStorage.getItem('yuli_dual_v2_'+todayKey)) {
-                document.getElementById('complete-btn').className = 'btn btn-done completed';
-                document.getElementById('complete-btn').innerText = '🌸 今日練習達成';
+            if (localStorage.getItem('yuli_v2_done_'+todayKey)) {
+                const b = document.getElementById('complete-btn');
+                b.className = 'btn btn-done completed';
+                b.innerText = '🌸 今日練習達成';
             }
         }
         fetchCSV();
