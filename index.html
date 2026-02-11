@@ -13,23 +13,22 @@
         }
         body { font-family: 'Zen Maru Gothic', sans-serif; background-color: var(--bg-soft); color: #6A6A6A; margin: 0; padding-bottom: 80px; display: flex; flex-direction: column; align-items: center; }
         
-        /* Header 修正 */
         .header { width: 100%; background: white; padding: 15px 0; display: flex; justify-content: space-around; align-items: center; box-shadow: 0 4px 12px rgba(255,182,193,0.2); position: sticky; top: 0; z-index: 1000; border-bottom: 3px solid var(--sakura-pink); }
         .logo { font-family: 'Quicksand', sans-serif; font-size: 26px; font-weight: 600; color: var(--sakura-dark); text-decoration: none; }
         .logo span { color: var(--macaron-green); }
         
-        /* 日曆按鈕強化：確保手機必能點擊 */
-        .calendar-wrapper { position: relative; display: inline-block; }
+        /* 日曆按鈕強化：電腦手機雙通 */
+        .calendar-wrapper { position: relative; display: inline-block; cursor: pointer; }
         .calendar-btn { 
             background: white; border: 2px solid var(--macaron-green); 
             padding: 8px 18px; border-radius: 25px; 
             color: var(--mint-dark); font-weight: bold; 
             display: flex; align-items: center; justify-content: center;
+            pointer-events: none; /* 讓點擊穿透到下方的 input */
         }
         #date-picker { 
             position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
             opacity: 0; cursor: pointer; z-index: 10;
-            -webkit-appearance: none; /* 針對 iOS */
         }
 
         .ui-container { width: 90%; max-width: 600px; display: flex; flex-direction: column; align-items: center; gap: 15px; margin-top: 15px; }
@@ -59,7 +58,7 @@
 <body>
     <div class="header">
         <a href="#" class="logo">Mimi<span>Tube</span></a>
-        <div class="calendar-wrapper">
+        <div class="calendar-wrapper" onclick="document.getElementById('date-picker').showPicker()">
             <button class="calendar-btn">📅 選日期</button>
             <input type="date" id="date-picker" onchange="switchLesson(this.value)">
         </div>
@@ -140,7 +139,6 @@
         async function handleMicClick() {
             const btn = document.getElementById('main-btn');
             const box = document.getElementById('ai-box');
-            
             if (!isRecording) {
                 try {
                     isRecording = true;
@@ -170,7 +168,6 @@
                     recognition.onresult = (e) => {
                         const res = e.results[0][0].transcript;
                         document.getElementById('ai-transcript').innerText = res;
-                        
                         const tChars = targetJp.replace(/[、。！？ ]/g, "").split("");
                         let html = "", correct = 0;
                         tChars.forEach(c => {
