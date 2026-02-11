@@ -7,42 +7,37 @@
     <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@600&family=Zen+Maru+Gothic:wght@400;700&display=swap" rel="stylesheet">
     <style>
         :root { 
-            --sakura-pink: #FFD1DC; /* 櫻花粉 */
-            --sakura-dark: #FF9AA2; 
-            --macaron-green: #B2E2D2; /* 馬卡龍綠 */
-            --mint-dark: #88C9B3; 
+            --sakura-pink: #FFD1DC; --sakura-dark: #FF9AA2; 
+            --macaron-green: #B2E2D2; --mint-dark: #88C9B3; 
             --bg-soft: #FFF9FA; 
+            --correct-green: #4CAF50;
+            --wrong-pink: #FF5252;
         }
         body { font-family: 'Zen Maru Gothic', sans-serif; background-color: var(--bg-soft); color: #6A6A6A; margin: 0; padding-bottom: 80px; display: flex; flex-direction: column; align-items: center; }
-        
-        /* 頂部導覽列 */
         .header { width: 100%; background: white; padding: 15px 0; display: flex; justify-content: space-around; align-items: center; box-shadow: 0 4px 12px rgba(255,182,193,0.2); position: sticky; top: 0; z-index: 1000; border-bottom: 3px solid var(--sakura-pink); }
         .logo { font-family: 'Quicksand', sans-serif; font-size: 26px; font-weight: 600; color: var(--sakura-dark); text-decoration: none; }
         .logo span { color: var(--macaron-green); }
         .calendar-btn { background: white; border: 2px solid var(--macaron-green); padding: 8px 18px; border-radius: 25px; cursor: pointer; color: var(--mint-dark); font-weight: bold; }
-        
-        /* 標題區 */
         .title-section { margin-top: 20px; text-align: center; width: 90%; }
         .yuli-title { font-size: 1.5em; font-weight: 700; color: var(--sakura-dark); margin-bottom: 5px; }
-        .yuli-title span { color: var(--macaron-green); }
-
-        /* 核心統一容器：所有元件寬度一致 */
         .ui-container { width: 90%; max-width: 600px; display: flex; flex-direction: column; align-items: center; gap: 15px; }
-
         .player-wrapper { width: 100%; aspect-ratio: 16 / 9; border-radius: 25px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.1); border: 6px solid white; background: #000; margin: 10px 0; }
         
-        .ai-feedback { background: white; padding: 20px; border-radius: 20px; width: 100%; box-sizing: border-box; border: 3px dashed var(--sakura-pink); display: none; }
+        /* 診斷回饋區 */
+        .ai-feedback { background: white; padding: 20px; border-radius: 20px; width: 100%; box-sizing: border-box; border: 3px dashed var(--sakura-pink); display: none; text-align: center; }
+        .score-display { font-size: 2.2em; font-weight: bold; color: var(--sakura-dark); margin-bottom: 10px; }
+        .diagnostic-text { font-size: 1.3em; letter-spacing: 2px; line-height: 1.8; margin: 15px 0; padding: 10px; background: #fdfdfd; border-radius: 10px; }
+        .char-correct { color: var(--correct-green); border-bottom: 2px solid var(--correct-green); margin: 0 1px; }
+        .char-wrong { color: var(--wrong-pink); border-bottom: 2px solid var(--wrong-pink); margin: 0 1px; background: #ffebee; }
         
-        /* 字幕與按鈕：寬度對齊，視覺整齊 */
         .subtitle { background: white; padding: 20px; border-radius: 20px; text-align: left; cursor: pointer; border: 3px solid #f0f0f0; width: 100%; box-sizing: border-box; transition: 0.3s; }
         .subtitle.active { border-color: var(--macaron-green); background: #F4FAF8; }
-        
-        .btn { border: none; border-radius: 50px; padding: 18px 0; font-weight: bold; cursor: pointer; width: 100%; font-family: inherit; font-size: 1em; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.05); transition: 0.3s; }
-        .btn-ai { background: var(--sakura-dark); color: white; }
-        .btn-record { background: var(--macaron-green); color: white; }
-        
-        audio { width: 100%; margin: 10px 0; display: none; }
+        .btn { border: none; border-radius: 50px; padding: 18px 0; font-weight: bold; cursor: pointer; width: 100%; font-family: inherit; font-size: 1.1em; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        .btn-main { background: var(--macaron-green); color: white; }
+        .btn-main.recording { background: #FF9AA2; animation: pulse 1s infinite; }
+        audio { width: 100%; margin-top: 10px; }
         #date-picker { position: absolute; opacity: 0; pointer-events: none; }
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.02); } 100% { transform: scale(1); } }
     </style>
 </head>
 <body>
@@ -61,14 +56,14 @@
         <div class="player-wrapper"><div id="player"></div></div>
 
         <div id="ai-box" class="ai-feedback">
-            <div id="ai-status" style="font-weight: bold; color: var(--sakura-dark);"></div>
-            <div style="font-size: 0.9em; margin: 10px 0;">聽到的：<span id="ai-transcript" style="color:var(--mint-dark); font-weight:bold;">...</span></div>
-            <div id="ai-result" style="font-weight: bold;"></div>
+            <div id="ai-status" style="font-size: 0.9em; color: #888;">診斷結果</div>
+            <div class="score-display" id="ai-score">-- 分</div>
+            <div id="ai-diagnostic" class="diagnostic-text">點擊下方按鈕開始練習</div>
+            <div style="font-size: 0.8em; color: #aaa;">(綠色：正確 | 紅色：需改進)</div>
         </div>
 
-        <button class="btn btn-ai" onclick="startSpeechAI()">🌸 啟動 AI 校正發音</button>
-        <button id="manual-record-btn" class="btn btn-record" onclick="toggleManualRecord()">🍵 手動錄音比對</button>
-        <audio id="audio-playback" controls playsinline></audio>
+        <button id="main-action-btn" class="btn btn-main" onclick="handleMicClick()">🎤 點我錄音並診斷發音</button>
+        <audio id="audio-playback" controls playsinline style="display:none;"></audio>
 
         <div id="subtitle-list" style="width: 100%;"></div>
     </div>
@@ -76,45 +71,60 @@
     <script>
         const SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSEXKJakE6c7TwGFVBHEUjOYsq3Tr1GO_hZVruVJcsb3y2plxlflzjGjlmyjrU1yV43GxdZXGqn57ie/pub?output=csv";
         let videoDB = {}, player, lStart = 0, lEnd = 0, targetJp = "";
-        const todayKey = new Date().toLocaleDateString('sv-SE');
+        let mRec, chunks = [], isRecording = false, recognition;
 
         function openPicker() { document.getElementById('date-picker').showPicker ? document.getElementById('date-picker').showPicker() : document.getElementById('date-picker').click(); }
 
+        // 核心功能：逐字對比與診斷
+        function diagnoseSpeech(target, input) {
+            const tChars = target.replace(/[、。！？ ]/g, "").split("");
+            const iChars = input.replace(/[、。！？ ]/g, "").split("");
+            let resultHtml = "";
+            let correctCount = 0;
+
+            tChars.forEach((char, index) => {
+                // 檢查學生說的內容是否包含該位置的正確字
+                if (iChars.includes(char)) {
+                    resultHtml += `<span class="char-correct">${char}</span>`;
+                    correctCount++;
+                    // 移除已匹配的字，避免重複計算
+                    iChars.splice(iChars.indexOf(char), 1);
+                } else {
+                    resultHtml += `<span class="char-wrong">${char}</span>`;
+                }
+            });
+
+            const score = Math.round((correctCount / tChars.length) * 100);
+            return { html: resultHtml, score: score };
+        }
+
         async function fetchCSV() {
-            try {
-                const r = await fetch(`${SHEET_URL}&v=${Date.now()}`);
-                const txt = await r.text();
-                const rows = txt.split('\n').slice(1);
-                rows.forEach(line => {
-                    const c = line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
-                    if (c.length >= 4) {
-                        const date = c[0].trim();
-                        const sData = c[3].replace(/"/g, '').split('|').map(s => {
-                            const p = s.split(',');
-                            return { jp: p[0].trim(), zh: p[1].trim(), t: parseFloat(p[2]) || 0, d: parseFloat(p[3]) || 3 };
-                        });
-                        videoDB[date] = { id: c[1].trim().replace(/["' ]/g, ""), title: c[2].trim().replace(/"/g, ''), subs: sData };
-                    }
-                });
-                const t = document.createElement('script'); t.src = "https://www.youtube.com/iframe_api";
-                document.head.appendChild(t);
-            } catch(e) { console.error(e); }
+            const r = await fetch(`${SHEET_URL}&v=${Date.now()}`);
+            const txt = await r.text();
+            txt.split('\n').slice(1).forEach(line => {
+                const c = line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
+                if (c.length >= 4) {
+                    const date = c[0].trim();
+                    const sData = c[3].replace(/"/g, '').split('|').map(s => {
+                        const p = s.split(',');
+                        return { jp: p[0].trim(), zh: p[1].trim(), t: parseFloat(p[2]) || 0, d: parseFloat(p[3]) || 3 };
+                    });
+                    videoDB[date] = { id: c[1].trim().replace(/["' ]/g, ""), title: c[2].trim().replace(/"/g, ''), subs: sData };
+                }
+            });
+            const t = document.createElement('script'); t.src = "https://www.youtube.com/iframe_api";
+            document.head.appendChild(t);
         }
 
         function onYouTubeIframeAPIReady() {
-            const lesson = videoDB[todayKey] || Object.values(videoDB)[0];
+            const today = new Date().toLocaleDateString('sv-SE');
+            const lesson = videoDB[today] || Object.values(videoDB)[0];
             player = new YT.Player('player', {
-                height: '100%', width: '100%',
-                videoId: lesson ? lesson.id : '',
-                playerVars: { 'playsinline': 1, 'rel': 0, 'modestbranding': 1, 'controls': 1 },
-                events: { 'onReady': () => { switchLesson(todayKey); } }
+                height: '100%', width: '100%', videoId: lesson ? lesson.id : '',
+                playerVars: { 'playsinline': 1, 'rel': 0, 'modestbranding': 1 },
+                events: { 'onReady': () => { switchLesson(today); } }
             });
-            setInterval(() => {
-                if (player && player.getPlayerState() === 1 && lEnd > 0) {
-                    const now = player.getCurrentTime();
-                    if (now >= lEnd || now < lStart - 1) { player.seekTo(lStart); }
-                }
-            }, 50);
+            setInterval(() => { if (player && player.getPlayerState() === 1 && lEnd > 0) { if (player.getCurrentTime() >= lEnd) player.seekTo(lStart); } }, 50);
         }
 
         function switchLesson(date) {
@@ -132,40 +142,56 @@
                     document.querySelectorAll('.subtitle').forEach(el => el.classList.remove('active'));
                     d.classList.add('active');
                 };
-                d.innerHTML = `<div style="font-weight:700;font-size:1.25em;">${s.jp}</div><div style="color:#999;font-size:0.95em;margin-top:5px;">${s.zh}</div>`;
+                d.innerHTML = `<div style="font-weight:700;font-size:1.2em;">${s.jp}</div><div style="color:#999;font-size:0.9em;">${s.zh}</div>`;
                 list.appendChild(d);
             });
             document.getElementById('date-display').innerText = `📅 ${date} - ${lesson.title}`;
-            if (lesson.subs[0]) { lStart = lesson.subs[0].t; lEnd = lStart + lesson.subs[0].d; targetJp = lesson.subs[0].jp; }
+            targetJp = lesson.subs[0].jp; lStart = lesson.subs[0].t; lEnd = lStart + lesson.subs[0].d;
         }
 
-        function startSpeechAI() {
-            const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
-            if (!SpeechRec) return alert("請使用最新版 Safari 或 Chrome。");
-            const rec = new SpeechRec(); rec.lang = 'ja-JP';
-            rec.onstart = () => { document.getElementById('ai-box').style.display = 'block'; document.getElementById('ai-status').innerHTML = "🌸 <span style='color:red;'>正在聽...</span>"; };
-            rec.onresult = (e) => {
-                const res = e.results[0][0].transcript;
-                document.getElementById('ai-transcript').innerText = res;
-                const ok = res.replace(/[、。！？ ]/g, "") === targetJp.replace(/[、。！？ ]/g, "");
-                document.getElementById('ai-result').innerHTML = ok ? '<span style="color:var(--sakura-dark);">🎯 完璧！發音正確！</span>' : '<span style="color:var(--mint-dark);">💪 聽起來像「'+res+'」</span>';
-            };
-            rec.onend = () => { document.getElementById('ai-status').innerText = "辨識結束"; };
-            rec.start();
-        }
+        async function handleMicClick() {
+            const btn = document.getElementById('main-action-btn');
+            const box = document.getElementById('ai-box');
+            const playback = document.getElementById('audio-playback');
 
-        let mRec, chunks = [];
-        async function toggleManualRecord() {
-            const btn = document.getElementById('manual-record-btn');
-            const p = document.getElementById('audio-playback');
-            if (!mRec || mRec.state === "inactive") {
+            if (!isRecording) {
+                isRecording = true;
+                btn.innerText = "🛑 停止並查看診斷";
+                btn.classList.add('recording');
+                box.style.display = 'block';
+                document.getElementById('ai-score').innerText = "-- 分";
+                document.getElementById('ai-diagnostic').innerText = "🌸 正在聆聽您的發音...";
+
                 const s = await navigator.mediaDevices.getUserMedia({ audio: true });
                 const opt = MediaRecorder.isTypeSupported('audio/webm') ? { mimeType: 'audio/webm' } : { mimeType: 'audio/mp4' };
-                mRec = new MediaRecorder(s, opt); chunks = [];
+                mRec = new MediaRecorder(s, opt);
+                chunks = [];
                 mRec.ondataavailable = e => chunks.push(e.data);
-                mRec.onstop = () => { p.src = URL.createObjectURL(new Blob(chunks, { type: mRec.mimeType })); p.style.display = 'block'; p.load(); };
-                mRec.start(); btn.innerText = "🛑 停止錄製";
-            } else { mRec.stop(); btn.innerText = "🍵 手動錄音比對"; }
+                mRec.onstop = () => {
+                    const blob = new Blob(chunks, { type: mRec.mimeType });
+                    playback.src = URL.createObjectURL(blob);
+                    playback.style.display = 'block';
+                };
+                mRec.start();
+
+                const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+                recognition = new SR();
+                recognition.lang = 'ja-JP';
+                recognition.onresult = (e) => {
+                    const res = e.results[0][0].transcript;
+                    const diagnosis = diagnoseSpeech(targetJp, res);
+                    document.getElementById('ai-score').innerText = diagnosis.score + " 分";
+                    document.getElementById('ai-diagnostic').innerHTML = diagnosis.html;
+                };
+                recognition.start();
+
+            } else {
+                isRecording = false;
+                btn.innerText = "🎤 點我錄音並診斷發音";
+                btn.classList.remove('recording');
+                if (mRec) mRec.stop();
+                if (recognition) recognition.stop();
+            }
         }
         fetchCSV();
     </script>
