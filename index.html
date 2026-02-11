@@ -11,7 +11,7 @@
             --macaron-green: #B2E2D2; --mint-dark: #88C9B3; 
             --bg-soft: #FFF9FA; 
             --correct-green: #4CAF50;
-            --wrong-pink: #FF5252;
+            --wrong-pink: #FF8A8A;
         }
         body { font-family: 'Zen Maru Gothic', sans-serif; background-color: var(--bg-soft); color: #6A6A6A; margin: 0; padding-bottom: 80px; display: flex; flex-direction: column; align-items: center; }
         .header { width: 100%; background: white; padding: 15px 0; display: flex; justify-content: space-around; align-items: center; box-shadow: 0 4px 12px rgba(255,182,193,0.2); position: sticky; top: 0; z-index: 1000; border-bottom: 3px solid var(--sakura-pink); }
@@ -20,16 +20,14 @@
         .calendar-btn { background: white; border: 2px solid var(--macaron-green); padding: 8px 18px; border-radius: 25px; cursor: pointer; color: var(--mint-dark); font-weight: bold; }
         .title-section { margin-top: 20px; text-align: center; width: 90%; }
         .yuli-title { font-size: 1.5em; font-weight: 700; color: var(--sakura-dark); margin-bottom: 5px; }
+        .yuli-title span { color: var(--macaron-green); }
         .ui-container { width: 90%; max-width: 600px; display: flex; flex-direction: column; align-items: center; gap: 15px; }
         .player-wrapper { width: 100%; aspect-ratio: 16 / 9; border-radius: 25px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.1); border: 6px solid white; background: #000; margin: 10px 0; }
-        
-        /* 診斷回饋區 */
         .ai-feedback { background: white; padding: 20px; border-radius: 20px; width: 100%; box-sizing: border-box; border: 3px dashed var(--sakura-pink); display: none; text-align: center; }
-        .score-display { font-size: 2.2em; font-weight: bold; color: var(--sakura-dark); margin-bottom: 10px; }
-        .diagnostic-text { font-size: 1.3em; letter-spacing: 2px; line-height: 1.8; margin: 15px 0; padding: 10px; background: #fdfdfd; border-radius: 10px; }
-        .char-correct { color: var(--correct-green); border-bottom: 2px solid var(--correct-green); margin: 0 1px; }
-        .char-wrong { color: var(--wrong-pink); border-bottom: 2px solid var(--wrong-pink); margin: 0 1px; background: #ffebee; }
-        
+        .score-display { font-size: 2.2em; font-weight: bold; color: var(--sakura-dark); }
+        .diagnostic-text { font-size: 1.3em; letter-spacing: 2px; line-height: 1.8; margin: 10px 0; padding: 10px; border-radius: 10px; }
+        .char-correct { color: var(--correct-green); border-bottom: 2px solid var(--correct-green); }
+        .char-wrong { color: var(--wrong-pink); border-bottom: 2px solid var(--wrong-pink); opacity: 0.7; }
         .subtitle { background: white; padding: 20px; border-radius: 20px; text-align: left; cursor: pointer; border: 3px solid #f0f0f0; width: 100%; box-sizing: border-box; transition: 0.3s; }
         .subtitle.active { border-color: var(--macaron-green); background: #F4FAF8; }
         .btn { border: none; border-radius: 50px; padding: 18px 0; font-weight: bold; cursor: pointer; width: 100%; font-family: inherit; font-size: 1.1em; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
@@ -46,25 +44,19 @@
         <button class="calendar-btn" onclick="openPicker()">📅 選日期</button>
         <input type="date" id="date-picker" onchange="switchLesson(this.value)">
     </div>
-
     <div class="title-section">
         <div class="yuli-title">🌸 Yuli 的<span>每日日語教室</span> 🍵</div>
         <div id="date-display" style="font-weight: bold; color: #999; font-size: 0.8em; margin-top: 5px;"></div>
     </div>
-
     <div class="ui-container">
         <div class="player-wrapper"><div id="player"></div></div>
-
         <div id="ai-box" class="ai-feedback">
-            <div id="ai-status" style="font-size: 0.9em; color: #888;">診斷結果</div>
             <div class="score-display" id="ai-score">-- 分</div>
-            <div id="ai-diagnostic" class="diagnostic-text">點擊下方按鈕開始練習</div>
-            <div style="font-size: 0.8em; color: #aaa;">(綠色：正確 | 紅色：需改進)</div>
+            <div id="ai-diagnostic" class="diagnostic-text"></div>
+            <div id="ai-status" style="font-size: 0.9em; color: var(--mint-dark); font-weight: bold;"></div>
         </div>
-
         <button id="main-action-btn" class="btn btn-main" onclick="handleMicClick()">🎤 點我錄音並診斷發音</button>
         <audio id="audio-playback" controls playsinline style="display:none;"></audio>
-
         <div id="subtitle-list" style="width: 100%;"></div>
     </div>
 
@@ -75,27 +67,27 @@
 
         function openPicker() { document.getElementById('date-picker').showPicker ? document.getElementById('date-picker').showPicker() : document.getElementById('date-picker').click(); }
 
-        // 核心功能：逐字對比與診斷
+        // 寬鬆診斷邏輯
         function diagnoseSpeech(target, input) {
             const tChars = target.replace(/[、。！？ ]/g, "").split("");
-            const iChars = input.replace(/[、。！？ ]/g, "").split("");
+            const iText = input.replace(/[、。！？ ]/g, "");
             let resultHtml = "";
             let correctCount = 0;
 
-            tChars.forEach((char, index) => {
-                // 檢查學生說的內容是否包含該位置的正確字
-                if (iChars.includes(char)) {
+            tChars.forEach(char => {
+                if (iText.includes(char)) {
                     resultHtml += `<span class="char-correct">${char}</span>`;
                     correctCount++;
-                    // 移除已匹配的字，避免重複計算
-                    iChars.splice(iChars.indexOf(char), 1);
                 } else {
                     resultHtml += `<span class="char-wrong">${char}</span>`;
                 }
             });
 
-            const score = Math.round((correctCount / tChars.length) * 100);
-            return { html: resultHtml, score: score };
+            // 算法優化：增加基礎分數 1.2 倍，最高 100
+            let rawScore = (correctCount / tChars.length) * 100;
+            let finalScore = Math.min(Math.round(rawScore * 1.2), 100);
+            
+            return { html: resultHtml, score: finalScore };
         }
 
         async function fetchCSV() {
@@ -156,11 +148,11 @@
 
             if (!isRecording) {
                 isRecording = true;
-                btn.innerText = "🛑 停止並查看診斷";
+                btn.innerText = "🛑 停止錄音並診斷";
                 btn.classList.add('recording');
                 box.style.display = 'block';
                 document.getElementById('ai-score').innerText = "-- 分";
-                document.getElementById('ai-diagnostic').innerText = "🌸 正在聆聽您的發音...";
+                document.getElementById('ai-diagnostic').innerText = "🌸 正在聽...";
 
                 const s = await navigator.mediaDevices.getUserMedia({ audio: true });
                 const opt = MediaRecorder.isTypeSupported('audio/webm') ? { mimeType: 'audio/webm' } : { mimeType: 'audio/mp4' };
@@ -182,6 +174,7 @@
                     const diagnosis = diagnoseSpeech(targetJp, res);
                     document.getElementById('ai-score').innerText = diagnosis.score + " 分";
                     document.getElementById('ai-diagnostic').innerHTML = diagnosis.html;
+                    document.getElementById('ai-status').innerText = diagnosis.score >= 80 ? "🎯 素晴らしい！發音很棒！" : (diagnosis.score >= 50 ? "🌸 上手ですね！再接再厲！" : "🍵 惜しい！多聽幾次影片喔！");
                 };
                 recognition.start();
 
