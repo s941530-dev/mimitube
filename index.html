@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>MimiTube | Yuli 日語練習教室</title>
     <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@600&family=Zen+Maru+Gothic:wght@400;700&display=swap" rel="stylesheet">
     <style>
@@ -11,7 +11,7 @@
             --macaron-green: #B2E2D2; --mint-dark: #88C9B3; 
             --bg-soft: #FFF9FA; --text-gray: #6A6A6A;
         }
-        body { font-family: 'Zen Maru Gothic', sans-serif; background-color: var(--bg-soft); color: var(--text-gray); margin: 0; padding-bottom: 80px; display: flex; flex-direction: column; align-items: center; -webkit-tap-highlight-color: transparent; }
+        body { font-family: 'Zen Maru Gothic', sans-serif; background-color: var(--bg-soft); color: var(--text-gray); margin: 0; padding-bottom: 80px; display: flex; flex-direction: column; align-items: center; -webkit-font-smoothing: antialiased; }
         .header { width: 100%; background: white; padding: 15px 0; display: flex; justify-content: space-around; align-items: center; box-shadow: 0 4px 12px rgba(255,182,193,0.2); position: sticky; top: 0; z-index: 1000; border-bottom: 3px solid var(--macaron-pink); }
         .logo { font-family: 'Quicksand', sans-serif; font-size: 26px; font-weight: 600; color: var(--sakura-dark); text-decoration: none; }
         .calendar-btn { background: white; border: 2px solid var(--macaron-green); padding: 8px 18px; border-radius: 25px; cursor: pointer; color: var(--mint-dark); font-weight: bold; }
@@ -21,7 +21,7 @@
         .subtitle { background: white; margin-bottom: 12px; padding: 20px; border-radius: 20px; text-align: left; cursor: pointer; border: 3px solid #f0f0f0; transition: 0.3s; }
         .subtitle.active { border-color: var(--macaron-green); background: #F4FAF8; }
         .btn-group { display: flex; flex-direction: column; gap: 12px; align-items: center; width: 100%; }
-        .btn { border: none; border-radius: 50px; padding: 16px 30px; font-weight: bold; cursor: pointer; transition: 0.3s; width: 100%; max-width: 400px; font-family: inherit; }
+        .btn { border: none; border-radius: 50px; padding: 16px 30px; font-weight: bold; cursor: pointer; transition: 0.3s; width: 100%; max-width: 400px; font-family: inherit; font-size: 1em; }
         .btn-ai { background: var(--sakura-dark); color: white; }
         .btn-record { background: var(--macaron-green); color: white; }
         .btn-record.recording { background: #FF6B6B; animation: pulse 1s infinite; }
@@ -41,11 +41,13 @@
         <div id="date-display" style="font-weight: bold; color: var(--mint-dark); margin-bottom: 8px;"></div>
         <h2 id="lesson-title">載入中...</h2>
         <div class="player-wrapper"><div id="player"></div></div>
+        
         <div id="ai-box" class="ai-feedback">
             <div id="ai-status" style="font-weight: bold; color: var(--sakura-dark);"></div>
             <div style="font-size: 0.9em; margin: 10px 0;">聽到的：<span id="ai-transcript" style="color:var(--mint-dark); font-weight:bold;">...</span></div>
-            <div id="ai-result"></div>
+            <div id="ai-result" style="font-weight: bold;"></div>
         </div>
+
         <div class="btn-group">
             <button id="ai-btn" class="btn btn-ai" onclick="startSpeechAI()">🌸 啟動 AI 校正發音</button>
             <button id="manual-record-btn" class="btn btn-record" onclick="toggleManualRecord()">🍵 手動錄音比對</button>
@@ -59,24 +61,25 @@
         let videoDB = {}, player, lStart = 0, lEnd = 0, targetJp = "";
         const todayKey = new Date().toLocaleDateString('sv-SE');
 
-        // Safari 日期選擇器修復
         function openPicker() { document.getElementById('date-picker').showPicker ? document.getElementById('date-picker').showPicker() : document.getElementById('date-picker').click(); }
 
         async function fetchCSV() {
-            const r = await fetch(`${SHEET_URL}&v=${Date.now()}`);
-            const txt = await r.text();
-            txt.split('\n').slice(1).forEach(line => {
-                const c = line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
-                if (c.length >= 4) {
-                    const date = c[0].trim();
-                    const sData = c[3].replace(/"/g, '').split('|').map(s => {
-                        const p = s.split(',');
-                        return { jp: p[0], zh: p[1], t: parseFloat(p[2]) || 0, d: parseFloat(p[3]) || 3 };
-                    });
-                    videoDB[date] = { id: c[1].replace(/["' ]/g, ""), title: c[2].replace(/"/g, ''), subs: sData };
-                }
-            });
-            initYT();
+            try {
+                const r = await fetch(`${SHEET_URL}&v=${Date.now()}`);
+                const txt = await r.text();
+                txt.split('\n').slice(1).forEach(line => {
+                    const c = line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
+                    if (c.length >= 4) {
+                        const date = c[0].trim();
+                        const sData = c[3].replace(/"/g, '').split('|').map(s => {
+                            const p = s.split(',');
+                            return { jp: p[0], zh: p[1], t: parseFloat(p[2]) || 0, d: parseFloat(p[3]) || 3 };
+                        });
+                        videoDB[date] = { id: c[1].replace(/["' ]/g, ""), title: c[2].replace(/"/g, ''), subs: sData };
+                    }
+                });
+                initYT();
+            } catch(e) { console.error(e); }
         }
 
         function initYT() {
@@ -89,10 +92,10 @@
             player = new YT.Player('player', {
                 height: '100%', width: '100%',
                 videoId: lesson ? lesson.id : '',
-                playerVars: { 'playsinline': 1, 'rel': 0 },
+                playerVars: { 'playsinline': 1, 'rel': 0, 'controls': 1 },
                 events: { 'onReady': () => { switchLesson(todayKey); } }
             });
-            setInterval(() => { if (player && player.getPlayerState() === 1 && lEnd > 0) { if (player.getCurrentTime() >= lEnd) player.seekTo(lStart); } }, 30);
+            setInterval(() => { if (player && player.getPlayerState() === 1 && lEnd > 0) { if (player.getCurrentTime() >= lEnd) player.seekTo(lStart); } }, 40);
         }
 
         function switchLesson(date) {
@@ -105,35 +108,67 @@
             list.innerHTML = "";
             lesson.subs.forEach((s, i) => {
                 const d = document.createElement('div');
-                d.className = 'subtitle'; d.onclick = () => {
+                d.className = 'subtitle';
+                d.onclick = () => {
                     lStart = s.t; lEnd = s.t + s.d; targetJp = s.jp;
                     player.seekTo(lStart); player.playVideo();
                     document.querySelectorAll('.subtitle').forEach(el => el.classList.remove('active'));
                     d.classList.add('active');
                 };
-                d.innerHTML = `<div class="jp-text">${s.jp}</div><div class="zh-text">${s.zh}</div>`;
+                d.innerHTML = `<div class="jp-text" style="font-weight:700;">${s.jp}</div><div class="zh-text">${s.zh}</div>`;
                 list.appendChild(d);
             });
             if (lesson.subs[0]) { lStart = lesson.subs[0].t; lEnd = lStart + lesson.subs[0].d; targetJp = lesson.subs[0].jp; }
         }
 
-        // AI 辨識 (Safari 支援 webkitSpeechRecognition)
+        // --- Safari 強化版 AI 辨識 ---
         function startSpeechAI() {
             const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
-            if (!SpeechRec) return alert("您的設備不支援 AI 辨識，請使用 Chrome 或更新 Safari。");
-            const rec = new SpeechRec(); rec.lang = 'ja-JP';
-            rec.onstart = () => { document.getElementById('ai-box').style.display = 'block'; document.getElementById('ai-status').innerText = "🌸 AI 正在聽..."; };
+            if (!SpeechRec) {
+                alert("此設備或瀏覽器不支援語音辨識。請嘗試使用 Chrome。");
+                return;
+            }
+
+            const rec = new SpeechRec();
+            rec.lang = 'ja-JP';
+            rec.continuous = false;
+            rec.interimResults = false;
+
+            rec.onstart = () => {
+                document.getElementById('ai-box').style.display = 'block';
+                document.getElementById('ai-status').innerHTML = "🌸 <span style='color:red;'>正在聽... 請說話</span>";
+                document.getElementById('ai-result').innerText = "";
+            };
+
             rec.onresult = (e) => {
                 const res = e.results[0][0].transcript;
                 document.getElementById('ai-transcript').innerText = res;
-                const ok = res.replace(/[、。！？ ]/g, "") === targetJp.replace(/[、。！？ ]/g, "");
+                const cleanT = targetJp.replace(/[、。！？ ]/g, "");
+                const cleanR = res.replace(/[、。！？ ]/g, "");
+                const ok = cleanR === cleanT;
                 document.getElementById('ai-result').innerHTML = ok ? '<span style="color:var(--sakura-dark);">🎯 完璧！發音正確！</span>' : '<span style="color:var(--mint-dark);">💪 聽起來像「'+res+'」</span>';
             };
-            rec.onend = () => { document.getElementById('ai-status').innerText = "辨識結束"; };
-            rec.start();
+
+            rec.onerror = (err) => {
+                console.error("AI Error:", err.error);
+                if(err.error === 'not-allowed') alert("請確保 Safari 已開啟麥克風授權。");
+                document.getElementById('ai-status').innerText = "辨識失敗 (原因: " + err.error + ")";
+            };
+
+            rec.onend = () => {
+                if(document.getElementById('ai-status').innerText.includes("正在聽")) {
+                    document.getElementById('ai-status').innerText = "辨識結束";
+                }
+            };
+
+            try {
+                rec.start();
+            } catch (e) {
+                console.log("Start error", e);
+            }
         }
 
-        // 手動錄音 (相容 Safari 的 MediaRecorder)
+        // --- 錄音功能 ---
         let mRec, chunks = [];
         async function toggleManualRecord() {
             const btn = document.getElementById('manual-record-btn');
@@ -141,7 +176,6 @@
             if (!mRec || mRec.state === "inactive") {
                 try {
                     const s = await navigator.mediaDevices.getUserMedia({ audio: true });
-                    // Safari 相容格式判斷
                     const options = MediaRecorder.isTypeSupported('audio/webm') ? { mimeType: 'audio/webm' } : { mimeType: 'audio/mp4' };
                     mRec = new MediaRecorder(s, options);
                     chunks = [];
@@ -150,10 +184,10 @@
                         const blob = new Blob(chunks, { type: mRec.mimeType });
                         p.src = URL.createObjectURL(blob);
                         p.style.display = 'block';
-                        p.play(); // Safari 需要手動觸發播放
+                        p.load();
                     };
                     mRec.start(); btn.innerText = "🛑 停止錄製"; btn.classList.add('recording');
-                } catch(e) { alert("無法開啟麥克風，請檢查權限。"); }
+                } catch(e) { alert("無法開啟麥克風。"); }
             } else { mRec.stop(); btn.innerText = "🍵 手動錄音比對"; btn.classList.remove('recording'); }
         }
         fetchCSV();
