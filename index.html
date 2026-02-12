@@ -72,22 +72,19 @@
             <div class="player-wrapper"><div id="player"></div></div>
             <div id="ai-box" class="ai-feedback">
                 <div id="ai-diagnostic" class="diagnostic-text"></div>
-                <div id="ai-transcript-box" class="transcript-text">AI 聽到你說：<br><span id="ai-transcript" style="color: var(--sakura-dark); font-weight: bold; font-size: 1.2em;">...</span></div>
-            </div>
+                <div id="ai-transcript-box" class="transcript-text"><div id="ai-transcript-box" class="transcript-text">AI 聽到的平假名：<br><span id="ai-transcript" style="color: var(--sakura-dark); font-weight: bold; font-size: 1.2em;">...</span></div>
             <button id="main-btn" class="btn btn-main" onclick="handleMicClick()">🎤 點我錄音診斷</button>
             <audio id="audio-playback" controls></audio>
             <div id="subtitle-list" style="width: 100%;"></div>
         </div>
     </div>
 
-    <script>
-        const SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSEXKJakE6c7TwGFVBHEUjOYsq3Tr1GO_hZVruVJcsb3y2plxlflzjGjlmyjrU1yV43GxdZXGqn57ie/pub?output=csv";
-        let videoDB = [], player, lStart = 0, lEnd = 0, targetJp = "", currentDate = "", currentLevel = "初級";
-        let mRec, chunks = [], isRecording = false, recognition, recordings = {};
-
-        function goHome() {
+    function goHome() {
             const today = new Date().toLocaleDateString('sv-SE');
+            currentDate = today; // 強制更新當前全域日期變數
+            // 執行 switchDate 會觸發 renderLesson，自動判定解鎖今日課程
             switchDate(today);
+            console.log("🌸 已安全回到今日課程頁面");
         }
 
         async function fetchCSV() {
@@ -215,7 +212,7 @@
             }
         }
 
-        async function handleMicClick() {
+async function handleMicClick() {
             const btn = document.getElementById('main-btn');
             if (!isRecording) {
                 try {
@@ -231,7 +228,12 @@
                         const blob = new Blob(chunks, { type: mRec.mimeType });
                         const audioUrl = URL.createObjectURL(blob);
                         const key = currentDate + currentLevel;
-                        recordings[key] = { url: audioUrl, diag: document.getElementById('ai-diagnostic').innerHTML, trans: document.getElementById('ai-transcript').innerText };
+                        // 儲存錄音紀錄，包含當時辨識出的平假名內容
+                        recordings[key] = { 
+                            url: audioUrl, 
+                            diag: document.getElementById('ai-diagnostic').innerHTML, 
+                            trans: document.getElementById('ai-transcript').innerText 
+                        };
                         const playback = document.getElementById('audio-playback');
                         playback.src = audioUrl; playback.style.display = 'block';
                     };
@@ -240,9 +242,17 @@
                     recognition = new SR(); recognition.lang = 'ja-JP';
                     recognition.onresult = (e) => {
                         const res = e.results[0][0].transcript;
-                        document.getElementById('ai-transcript').innerText = wanakana.toHiragana(res);
+                        // 這裡強制轉換為平假名顯示
+                        const hiraganaRes = wanakana.toHiragana(res);
+                        document.getElementById('ai-transcript').innerText = hiraganaRes;
+                        
+                        // 進行診斷比對（judgeBySound 內部會自動把目標也轉為平假名）
                         const result = judgeBySound(targetJp, res);
                         document.getElementById('ai-diagnostic').innerHTML = result.html;
+                        
+                        // 清空不需要的狀態文字（原本的 AI-status），保持介面簡潔
+                        const statusEl = document.getElementById('ai-status');
+                        if (statusEl) statusEl.innerText = "";
                     };
                     recognition.start();
                 } catch (err) { alert("麥克風權限未開啟。"); isRecording = false; btn.classList.remove('recording'); }
@@ -254,7 +264,6 @@
                 if(recognition) recognition.stop();
             }
         }
-
         function judgeBySound(target, input) {
             const targetHiragana = wanakana.toHiragana(target).replace(/[、。！？ ]/g, "");
             const inputRomaji = wanakana.toRomaji(input).replace(/[^a-z]/gi, '').toLowerCase();
@@ -273,3 +282,4 @@
     </script>
 </body>
 </html>
+
